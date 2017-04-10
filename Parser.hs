@@ -15,6 +15,10 @@ instance Functor Parser where
   fmap f p = Parser fun where
     fun s = [(f a, s') | (a, s') <- apply p s]
 
+instance Applicative Parser where
+  pure x = Parser f where
+    f s = (x, s)
+
 newtype Prs a = Prs { runPrs :: String -> Maybe (a, String) }
 
 instance Functor Prs where
