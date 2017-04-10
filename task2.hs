@@ -40,7 +40,7 @@ exprEither :: (forall a b . Either String a -> Either String (a -> b) -> Either 
 exprEither op =
   let (<??>) = op
       infixl 4 <??>
-  in Left "AA" <??> Right (+1)  -- place for counterexample
+  in Left "AA" <??> Left "AA"  -- place for counterexample
 
 exprPair :: (forall a b . (String,a) -> (String,a -> b) -> (String,b)) -> (String,Int)
 exprPair op =
