@@ -41,6 +41,11 @@ newtype Cmps3 f g h a = Cmps3 { getCmps3 :: f (g (h a)) }
 instance (Functor f, Functor g, Functor h) => Functor (Cmps3 f g h) where
   fmap f (Cmps3 x) = Cmps3 (fmap (fmap (fmap f)) x)
 
+{- unCmps3 :: Functor f => (f |.| g |.| h) a -> f (g (h a))
+unCmps3 = undefined
+
+unCmps4 :: (Functor f2, Functor f1) => (f2 |.| f1 |.| g |.| h) a -> f2 (f1 (g (h a)))
+unCmps4 = undefined -}
 
 
 {- type A   = ((,) Integer |.| (,) Char) Bool

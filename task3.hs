@@ -1,12 +1,26 @@
 import Text.Parsec
+import Control.Applicative ((*>), (<*))
 
-{-getList :: Parsec String u [String]
-getList = undefined
+getList :: Parsec String u [String]
+getList = ((many1 digit) `sepBy` (char ';'))
 
 ignoreBraces :: Parsec [Char] u a -> Parsec [Char] u b -> Parsec [Char] u c -> Parsec [Char] u c
-ignoreBraces = undefined -}
+ignoreBraces x y z = x *> z <* y
 
-newtype Prs a = Prs { runPrs :: String -> Maybe (a, String) }
+a = parseTest digit "12AB"
+
+b = parseTest letter "AB12AB"
+
+c = parse letter "" "AB12AB"
+
+vowel :: Parsec [Char] u Char
+vowel = oneOf "aeiou"
+
+vowel1 :: Parsec [Char] u Char
+vowel1 = oneOf "dbcvgs"
+
+
+{- newtype Prs a = Prs { runPrs :: String -> Maybe (a, String) }
 
 instance Functor Prs where
   fmap = undefined
@@ -42,3 +56,12 @@ many1 = undefined
 
 nat :: Prs Int
 nat = undefined
+
+instance Alternative PrsE where
+  empty = PrsE f where
+    f _ = Left "empty alternative"
+  p <|> q = PrsE f where
+    f s = let ps = runPrsE p s
+      in if null ps
+         then runPrsE q s
+         else ps -}
