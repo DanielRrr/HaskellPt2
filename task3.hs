@@ -13,6 +13,23 @@ b = parseTest letter "AB12AB"
 
 c = parse letter "" "AB12AB"
 
+d = parseTest (many1 digit) "1234567890asdfghjkl"
+
+e = parseTest (many1 letter) "qwertyuiop1234567890asdfghjkl"
+
+f = parseTest (many digit) "1244wrgwr"
+
+g = parseTest (count 3 digit) "35135ianievni"
+
+h = parseTest (count 3 digit `endBy` (char 'A')) "123ABC123"
+
+p0 :: Parsec [Char] u ([Char], [Char])
+p0 = pure (,) <*> many1 letter <*> many1 digit
+
+p1 :: Parsec [Char] u ([Char], [Char])
+p1 = (,) <$> many1 letter <*> (many space *> many1 digit)
+
+
 vowel :: Parsec [Char] u Char
 vowel = oneOf "aeiou"
 
@@ -20,16 +37,19 @@ vowel1 :: Parsec [Char] u Char
 vowel1 = oneOf "dbcvgs"
 
 
-{- newtype Prs a = Prs { runPrs :: String -> Maybe (a, String) }
+newtype Prs a = Prs { runPrs :: String -> Maybe (a, String) }
 
 instance Functor Prs where
+  -- fmap :: (a -> b) -> Prs a -> Prs b
   fmap = undefined
 
 anyChr :: Prs Char
 anyChr = undefined
 
-instance Applicative Prs where
-  pure  = undefined
+{- instance Applicative Prs where
+  -- pure :: a -> Prs a
+  pure x = Prs x
+  -- (<*>) :: Prs (a -> b) -> Prs a -> Prs b
   (<*>) = undefined
 
 newtype PrsE a = PrsE { runPrsE :: String -> Either String (a, String) }
