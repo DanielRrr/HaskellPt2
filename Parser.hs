@@ -15,9 +15,9 @@ instance Functor Parser where
   fmap f p = Parser fun where
     fun s = [(f a, s') | (a, s') <- apply p s]
 
-instance Applicative Parser where
+{-instance Applicative Parser where
   pure x = Parser f where
-    f s = (x, s)
+    f s = (x, s) -}
 
 newtype Prs a = Prs { runPrs :: String -> Maybe (a, String) }
 
@@ -32,28 +32,46 @@ anyChr = Prs fun where
   fun [] = Nothing
   fun (x:xs) = Just (x, xs)
 
-    {- instance Applicative Prs where
-      -- pure :: a -> Prs a
-      pure x = Prs x
-      -- (<*>) :: Prs (a -> b) -> Prs a -> Prs b
-      (<*>) = undefined
+instance Applicative Prs where
+  pure x = Prs f where
+    f s = Just (x, s)
+  (Prs p1) <*> (Prs p2) = Prs fun where
+    fun s = case p1 s of
+      Nothing -> Nothing
+      Just (f, s') -> case p2 s' of
+        Nothing -> Nothing
+        Just (x, s'') -> Just (f x, s'')
 
-    newtype PrsE a = PrsE { runPrsE :: String -> Either String (a, String) }
 
-    satisfyE :: (Char -> Bool) -> PrsE Char
-    satisfyE = undefined
+newtype PrsE a = PrsE { runPrsE :: String -> Either String (a, String) }
 
-    charE :: Char -> PrsE Char
-    charE c = satisfyE (== c)
+satisfyE :: (Char -> Bool) -> PrsE Char
+satisfyE property = PrsE parser where
+  parser "" = Left "exception: empty string"
+  parser (x:xs) = case property x of
+    False -> Left ("exception " ++ ['x'])
+    True -> Right (x, xs)
 
-    instance Functor PrsE where
-      fmap = undefined
+charE :: Char -> PrsE Char
+charE c = satisfyE (== c)
 
-    instance Applicative PrsE where
-      pure  = undefined
-      (<*>) = undefined
 
-    instance Alternative Prs where
+{- instance Functor PrsE where
+  fmap f s = PrsE fun where
+    fun s = case f s of
+      f [] = Left "exception"
+      f (x:xs) = Right (x, xs) -}
+
+{-
+instance Applicative PrsE where
+--pure :: a -> PrsE a
+  pure x = PrsE f where
+    f s = Right (x, s)
+--(<*>) :: PrsE (a -> b) -> PrsE a -> PrsE b
+  (<*>) = undefined -}
+
+
+{-    instance Alternative Prs where
       empty = undefined
       (<|>) = undefined
 
