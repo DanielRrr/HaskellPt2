@@ -21,6 +21,27 @@ instance Applicative Parser where
   pf <*> pv = Parser f where
     f s = [(g a, s'') | (g, s') <- apply pf s, (a, s'') <- apply pv s']
 
+satisfy :: (Char -> Bool) -> Parser Char
+satisfy pr = Parser f where
+  f "" = []
+  f (x:xs) | pr x = [(x, xs)]
+           | otherwise = []
+
+lower :: Parser Char
+lower = satisfy isLower
+
+digit :: Parser Int
+digit = digitToInt <$> satisfy isDigit
+
+char :: Char -> Parser Char
+char c = satisfy (== c)
+
+multiplication :: Parser Int
+multiplication = (*) <$> digit <* char '*' <*> digit
+
+sum :: Parser Int
+sum = (+) <$> digit <* char '+' <*> digit
+
 newtype Prs a = Prs { runPrs :: String -> Maybe (a, String) }
 
 instance Functor Prs where
@@ -67,7 +88,6 @@ instance Functor PrsE where
 
 
 instance Applicative PrsE where
---pure :: a -> PrsE a
   pure x = PrsE f where
     f s = Right (x, s)
   (PrsE p1) <*> (PrsE p2) = PrsE f where
@@ -78,22 +98,14 @@ instance Applicative PrsE where
         Right (x, string') -> Right (f x, string')
 
 
-{-
 instance Alternative Prs where
-      empty = undefined
-      (<|>) = undefined
+  empty = Prs f where
+    f = const Nothing
+  p1 <|> p2 = Prs f where
+    f s = (runPrs p1 s) <|> (runPrs p2 s)
 
-    many1 :: Prs a -> Prs [a]
-    many1 = undefined
+many1 :: Prs a -> Prs [a]
+many1 = undefined
 
-    nat :: Prs Int
-    nat = undefined
-
-    instance Alternative PrsE where
-      empty = PrsE f where
-        f _ = Left "empty alternative"
-      p <|> q = PrsE f where
-        f s = let ps = runPrsE p s
-          in if null ps
-             then runPrsE q s
-             else ps -}
+nat :: Prs Int
+nat = undefined
