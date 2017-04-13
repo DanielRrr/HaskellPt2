@@ -42,6 +42,15 @@ multiplication = (*) <$> digit <* char '*' <*> digit
 sum :: Parser Int
 sum = (+) <$> digit <* char '+' <*> digit
 
+instance Alternative Parser where
+  empty = Parser f where
+    f = const []
+  p1 <|> p2 = Parser f where
+    f s = (apply p1 s) <|> (apply p2 s)
+
+lowers :: Parser String
+lowers = pure (:) <*> lower <*> lowers <|> pure ""
+
 newtype Prs a = Prs { runPrs :: String -> Maybe (a, String) }
 
 instance Functor Prs where
