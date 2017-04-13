@@ -56,19 +56,24 @@ charE :: Char -> PrsE Char
 charE c = satisfyE (== c)
 
 
-{- instance Functor PrsE where
-  fmap f s = PrsE fun where
-    fun s = case f s of
-      f [] = Left "exception"
-      f (x:xs) = Right (x, xs) -}
+instance Functor PrsE where
+    -- fmap :: (a -> b) -> PrsE a -> PrsE b
+    fmap f (PrsE g) = PrsE fun where
+        fun s = case g s of
+            Left e -> Left e
+            Right (x, s') -> Right (f x, s')
 
-{-
+
 instance Applicative PrsE where
 --pure :: a -> PrsE a
   pure x = PrsE f where
     f s = Right (x, s)
---(<*>) :: PrsE (a -> b) -> PrsE a -> PrsE b
-  (<*>) = undefined -}
+  (PrsE p1) <*> (PrsE p2) = PrsE f where
+    f s = case p1 s of
+      Left x -> Left x
+      Right (f, string) -> case p2 string of
+        Left x -> Left x
+        Right (x, string') -> Right (f x, string')
 
 
 {-    instance Alternative Prs where
