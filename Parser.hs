@@ -15,9 +15,11 @@ instance Functor Parser where
   fmap f p = Parser fun where
     fun s = [(f a, s') | (a, s') <- apply p s]
 
-{-instance Applicative Parser where
-  pure x = Parser f where
-    f s = (x, s) -}
+instance Applicative Parser where
+  pure a = Parser f where
+    f s = [(a, s)]
+  pf <*> pv = Parser f where
+    f s = [(g a, s'') | (g, s') <- apply pf s, (a, s'') <- apply pv s']
 
 newtype Prs a = Prs { runPrs :: String -> Maybe (a, String) }
 
@@ -76,7 +78,8 @@ instance Applicative PrsE where
         Right (x, string') -> Right (f x, string')
 
 
-{-    instance Alternative Prs where
+{-
+instance Alternative Prs where
       empty = undefined
       (<|>) = undefined
 
