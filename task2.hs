@@ -53,7 +53,3 @@ exprEnv op =
   let (<??>) = op
       infixl 4 <??>
   in length <??> (\_ -> (+5))  -- place for counterexample
-
-type A   = ((,) Integer |.| (,) Char) Bool
-type B t = ((,,) Bool (t -> t) |.| Either String) Int
-type C   = (|.|) ((->) Bool) ((->) Integer) Integer

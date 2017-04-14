@@ -33,9 +33,6 @@ lower = satisfy isLower
 digit :: Parser Int
 digit = digitToInt <$> satisfy isDigit
 
-char :: Char -> Parser Char
-char c = satisfy (== c)
-
 multiplication :: Parser Int
 multiplication = (*) <$> digit <* char '*' <*> digit
 
@@ -114,7 +111,18 @@ instance Alternative Prs where
     f s = (runPrs p1 s) <|> (runPrs p2 s)
 
 many1 :: Prs a -> Prs [a]
-many1 = undefined
+many1 prs = (:) <$> prs <*> (many1 prs <|> pure [])
+
+char :: Char -> Prs Char
+char c = Prs p where
+  p (x:xs) | (x == c) = Just (x, xs)
+  p _ = Nothing
+
+digit :: Prs Int
+digit = digitToInt <$> satisfy isDigit
+
+mult :: Prs Int
+mult = pure (*) <*> num <* char 'x' <*> num
 
 nat :: Prs Int
 nat = undefined
