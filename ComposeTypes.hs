@@ -43,3 +43,9 @@ Cmps $ fmap ((fmap h2) . (fmap h1)) x --(по закону фукнтора о �
 Cmps $ (fmap (fmap h2) . fmap (fmap  h1)) x --аналогично
 Cmps $ fmap (fmap h2) (fmap (fmap h1) x) --раскрытие композиции
 -}
+
+unCmps3 :: Functor f => (f |.| g |.| h) a -> f (g (h a))
+unCmps3 = fmap getCmps . getCmps
+
+unCmps4 :: (Functor f2, Functor f1) => (f2 |.| f1 |.| g |.| h) a -> f2 (f1 (g (h a)))
+unCmps4 = fmap (fmap getCmps) . unCmps3
