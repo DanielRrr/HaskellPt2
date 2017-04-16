@@ -32,6 +32,10 @@ instance Foldable Triple where
 
 data Tree a = Nil | Branch (Tree a) a (Tree a) deriving (Show, Eq)
 
+instance Functor Tree where
+  fmap f Nil = Nil
+  fmap f (Branch l x r) = Branch (fmap f l) (f x) (fmap f r)
+
 testTree = Branch (Branch (Branch Nil 1 Nil) 2 (Branch Nil 3 Nil)) 4 (Branch Nil 5 Nil)
 
 instance Foldable Tree where
@@ -49,6 +53,14 @@ newtype Levelorder a = LevelO (Tree a)    deriving (Eq, Show)
 instance Foldable Preorder where
   foldr f ini (PreO Nil) = ini
   foldr f ini (PreO (Branch l x r)) = f x (foldr f (foldr f ini (PreO r)) (PreO l))
+
+instance Functor Preorder where
+  fmap f (PreO Nil) = PreO Nil
+  fmap f (PreO (Branch l x r)) = PreO (Branch (fmap f l) (f x) (fmap f r))
+
+tree = PreO (Branch (Branch Nil 1 Nil) 2 (Branch (Branch Nil 3 Nil) 4 (Branch Nil 5 Nil)))
+
+test = fst $ sequenceA_ $ (\x -> (show x,x)) <$> tree
 
 instance Foldable Postorder where
   foldr f ini (PostO Nil) = ini
