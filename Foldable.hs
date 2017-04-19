@@ -3,12 +3,17 @@
 
 import Data.Foldable
 import Data.Monoid
-
+import Data.Traversable
+import Control.Applicative
 {-
 
 class Foldable l where
   foldr :: (a -> b -> b) -> b -> t a -> b
   foldl :: (b -> a -> b) -> b -> t a -> b
+  fold :: (Monoid m) => t m -> m
+  fold = foldr mappend mempty
+  foldMap :: Monoid m => (a -> m) -> t a -> m
+  foldMap f cont = foldr (mappend . f) mempty
 
 instance Foldable [] where
   foldr f ini [] = ini
