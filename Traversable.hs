@@ -1,6 +1,7 @@
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-import Data.Foldable
+import Data.Foldable (foldMapDefault)
 import Data.Traversable
 import Control.Applicative
 
@@ -105,3 +106,40 @@ instance (Foldable f, Foldable g) => Foldable (f |.| g) where
 
 instance (Traversable f, Traversable g) => Traversable (f |.| g) where
   traverse f (Cmps x) = Cmps <$> (traverse . traverse) f x
+
+data OddC a = Un a | Bi a a (OddC a) deriving (Eq,Show)
+
+instance Functor OddC where
+  fmap f (Un x) = Un (f x)
+  fmap f (Bi x y tl) = Bi (f x) (f y) (fmap f tl)
+
+instance Applicative OddC where
+  pure x = Un x
+  (Un f) <*> (Un x) = Un (f x)
+  (Bi f g tlF) <*> (Bi x y tl) = Bi (f x) (g y) (tlF <*> tl)
+  (Un f) <*> (Bi x y tl) = Un (f x)
+  (Bi f g tlF) <*> (Un x) = Un (f x)
+
+instance Foldable OddC where
+  foldr f init (Un a) = f a init
+  foldr f init (Bi a b rest) = (f a (f b (foldr f init rest)))
+
+instance Traversable OddC where
+  traverse f (Un a) = Un <$> (f a)
+  traverse f (Bi a b tl) = Bi <$> (f a) <*> (f b) <*> (traverse f tl)
+
+newtype Temperature a = Temperature Double
+  deriving (Num,Show,Eq,Fractional)
+
+data Celsius
+data Fahrenheit
+data Kelvin
+
+comfortTemperature :: Temperature Celsius
+comfortTemperature = Temperature 23
+
+c2f :: Temperature Celsius -> Temperature Fahrenheit
+c2f (Temperature c) = Temperature (1.8 * c + 32)
+
+k2c :: Temperature Kelvin -> Temperature Celsius
+k2c (Temperature c) = Temperature (c - 273.15)
