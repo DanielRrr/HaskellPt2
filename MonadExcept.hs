@@ -55,3 +55,19 @@ instance Monoid e => MonadPlus (Except e) where
     case x of
       Left e -> either (Left . mappend e) Right y
       r -> r
+
+instance Monoid DivByError where
+  mempty = ErrOther
+  ErrZero s1 `mappend` ErrZero s2 = ErrZero $ s1 ++ s2
+  ErrOther `mappend` ErrOther = ErrOther
+  x `mappend` ErrOther = x
+  ErrOther `mappend` x = x
+
+example1 :: Double -> Double -> Except DivByError String
+example1 x y = action `catchE` handler where
+  action = do
+    q <- x /? y
+    guard $ y >= 0
+    return $ show q
+  handler (ErrZero s) = return s
+  handler ErrOther = return "NONNEGATIVE GUARD"
