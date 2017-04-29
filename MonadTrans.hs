@@ -2,7 +2,7 @@
 
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.Writer
-import Control.Monad.Trans (lift)
+import Control.Monad.Trans
 import Data.Char (toUpper)
 
 secondElem :: Reader [String] String
@@ -43,3 +43,44 @@ separate pred1 pred2 xs = do
     lift $ tell filtered2
     tell filtered1
     return not_fish_not_meat  -}
+
+type MyRW = ReaderT [String] (Writer String)
+
+{- logFirstAndRetSecond :: MyRW String
+logFirstAndRetSecond = do
+      el1 <- lift (asks head)
+      el2 <- lift (asks (map toUpper . head . tail))
+      tell el1
+      return el2 -}
+
+{- logFirstAndSecond :: MyRW String
+logFirstAndSecond = do
+  el1 <- asks head
+  el2 <- asks (map toUpper . head . tail)
+  lift $ (tell el1)
+  return el2
+
+runMyRW :: MyRW a -> [String] -> (a, String)
+runMyRW rw e = runWriter (runReaderT rw e)
+
+
+myAsks :: ([String] -> a) -> MyRW a
+myAsks f = asks f
+
+myTell :: String -> MyRW ()
+myTell f = lift $ tell f
+
+type MyRWT m = WriterT String (ReaderT [String] m)
+
+runMyRWT :: MyRWT m a -> [String] -> m (a, String)
+runMyRWT rwt list = runReaderT (runWriterT rwt) list
+
+myAsks' :: Monad m => ([String] -> a) -> MyRWT m a
+myAsks' = lift . asks
+
+myTell' :: Monad m => String -> MyRWT m ()
+myTell' = tell
+
+myLift' :: Monad m => m a -> MyRWT m a
+myLift' x = (lift . lift) x
+-}
