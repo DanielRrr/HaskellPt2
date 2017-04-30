@@ -46,5 +46,11 @@ instance (Monad m) => Monad (Arr3T e1 e2 e3 m) where
   val >>= f = Arr3T $ \a b c -> do
     x1 <- getArr3T val a b c
     getArr3T (f x1) a b c
-  fail result = Arr3T $ \a b c -> fail result 
+  fail result = Arr3T $ \a b c -> fail result
 -}
+
+instance MonadTrans (Arr2T e1 e2) where
+  lift z = Arr2T (\x y -> z)
+
+asks2 :: Monad m => (e1 -> e2 -> a) -> Arr2T e1 e2 m a
+asks2 f = Arr2T $ \x y -> return (f x y)
