@@ -3,6 +3,7 @@
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.Writer
 import Control.Monad.Trans
+import Control.Monad.State
 import Data.Char (toUpper)
 
 secondElem :: Reader [String] String
