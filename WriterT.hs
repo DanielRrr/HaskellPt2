@@ -2,6 +2,9 @@
 
 import Control.Applicative (liftA2)
 import Data.Tuple (swap)
+import Control.Monad.Trans.Class
+import Control.Monad
+import Control.Monad.Identity
 
 newtype Writer w a = Writer { runWriter :: (a, w)}
 
@@ -64,3 +67,35 @@ instance (Monoid w, Monad m) => Monad (WriterT w m) where
     return (v', w `mappend` w')
   fail :: String -> WriterT w m a
   fail = WriterT . fail
+
+data Logged a = Logged String a deriving (Eq,Show)
+
+newtype LoggT m a = LoggT { runLoggT :: m (Logged a) }
+
+instance Monad m => Functor (LoggT m) where
+  fmap = liftM
+
+instance Monad m => Applicative (LoggT m) where
+  pure = return
+  (<*>) = ap
+
+instance Monad m => Monad (LoggT m) where
+  return v = LoggT $ return (Logged "" v)
+  m >>= k = LoggT $ do
+    (Logged str  v ) <- runLoggT m
+    (Logged str' v') <- runLoggT (k v)
+    return $ Logged (str ++ str') v'
+  fail = LoggT . fail
+
+logTst :: LoggT Identity Integer
+logTst = do
+    x <- LoggT $ Identity $ Logged "AAA" 30
+    y <- return 10
+    z <- LoggT $ Identity $ Logged "BBB" 2
+    return $ x + y + z
+
+failTst :: [Integer] -> LoggT [] Integer
+failTst xs = do
+    5 <- LoggT $ fmap (Logged "") xs
+    LoggT [Logged "A" ()]
+    return 42
