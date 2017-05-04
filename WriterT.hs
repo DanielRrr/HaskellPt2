@@ -5,6 +5,7 @@ import Data.Tuple (swap)
 import Control.Monad.Trans.Class
 import Control.Monad
 import Control.Monad.Identity
+import Control.Monad.Trans.State
 
 newtype Writer w a = Writer { runWriter :: (a, w)}
 
@@ -82,7 +83,7 @@ instance Monad m => Applicative (LoggT m) where
 instance Monad m => Monad (LoggT m) where
   return v = LoggT $ return (Logged "" v)
   m >>= k = LoggT $ do
-    (Logged str  v ) <- runLoggT m
+    (Logged str v ) <- runLoggT m
     (Logged str' v') <- runLoggT (k v)
     return $ Logged (str ++ str') v'
   fail = LoggT . fail
@@ -99,3 +100,44 @@ failTst xs = do
     5 <- LoggT $ fmap (Logged "") xs
     LoggT [Logged "A" ()]
     return 42
+
+instance (Monoid w) => MonadTrans (WriterT w) where
+  lift :: Monad m => m a -> WriterT w m a
+  lift m = WriterT $ do
+    x <- m
+    return (x, mempty)
+
+type Logg = LoggT Identity
+
+write2log :: Monad m => String -> LoggT m ()
+write2log = LoggT . return . (flip Logged) ()
+
+runLogg :: Logg a -> Logged a
+runLogg = runIdentity . runLoggT
+
+logTst' :: Logg Integer
+logTst' = do
+  write2log "AAA"
+  write2log "BBB"
+  return 42
+
+stLog :: StateT Integer Logg Integer
+stLog = do
+  modify (+1)
+  a <- get
+  lift $ write2log $ show $ a * 10
+  put 42
+  return $ a * 100
+
+instance MonadTrans LoggT where
+  lift m = LoggT $ do
+    x <- m
+    return $ Logged "" x
+
+logSt :: LoggT (State Integer) Integer
+logSt = do
+    lift $ modify (+1)
+    a <- lift get
+    write2log $ show $ a * 10
+    lift $ put 42
+    return $ a * 100
